@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html ang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>주소로 장소 표시하기</title>
+
+    <style>
+        .area {
+            position: absolute;
+            background: #fff;
+            border: 1px solid #888;
+            border-radius: 3px;
+            font-size: 12px;
+            top: -5px;
+            left: 15px;
+            padding:2px;
+        }
+
+        .center {
+            position: absolute;
+            background: #a20505;
+            border: 1px solid #1c9ae0;
+            border-radius: 3px;
+            font-size: 120px;
+
+        }
+        .map_wrap, .map_wrap * {margin:0;padding:0;font-family:'Malgun Gothic',dotum,'돋움',sans-serif;font-size:12px;}
+        .map_wrap a, .map_wrap a:hover, .map_wrap a:active{color:#000;text-decoration: none;}
+        .map_wrap {position:relative;width:100%;height:1000px;}
+        #menu_wrap {position:absolute;top:0;left:0;bottom:0;width:250px;margin:10px 0 30px 10px;padding:5px;overflow-y:auto;background:rgba(255, 255, 255, 0.7);z-index: 1;font-size:12px;border-radius: 10px;}
+        .bg_white {background:#fff;}
+        #menu_wrap hr {display: block; height: 1px;border: 0; border-top: 2px solid #5F5F5F;margin:3px 0;}
+        #menu_wrap .option{text-align: center;}
+        #menu_wrap .option p {margin:10px 0;}
+        #menu_wrap .option button {margin-left:5px;}
+    </style>
+</head>
+
+<body>
+<div class="map_wrap">
+    <div id="map" style="width:100%;height:100%; position:relative;overflow:hidden;"></div>
+
+    <div id="menu_wrap" class="bg_white">
+        <div class="option">
+            <div>
+                <form name="f" id="f">
+                센터 검색 : <select id="facType" name="facType">
+                <option value="msa002a">여성새로일하기센터</option>
+                <option value="msa004a">청소년상담복지센터</option>
+                <option value="msa004b">청소년활동진흥센터</option>
+                <option value="msa004c">청소년수련시설</option>
+                <option value="msa004d">청소년쉼터</option>
+                <option value="msa004e">학교밖청소년지원센터</option>
+                <option value="msa004f">기타 청소년시설</option>
+                <option value="msa003a">가족지원센터</option>
+                <option value="msa003b">공동육아나눔터</option>
+                <option value="msa003c">아이돌봄서비스기관</option>
+                <option value="msa003d">한부모가족복지시설</option>
+                <option value="msa003e">기타가족시설</option>
+                <option value="msa005b">여성긴급전화1366</option>
+                <option value="msa005c">해바라기센터</option>
+                <option value="msa005d">성폭력피해상담</option>
+                <option value="msa005e">가정폭력피해상담</option>
+                <option value="msa005f">성매매피해상담</option>
+                <option value="msa005g">청소년성문화센터</option>
+                </select>
+                <button id="button" type="button">검색하기</button>
+                </form>
+            </div>
+        </div>
+        <hr>
+        <ul id="placesList"></ul>
+        <div id="pagination"></div>
+    </div>
+</div>
+<script src="/js/jquery-3.6.0.js"></script>
+<script  th:inline="javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=df6cfe4566e745885efd898d832b23f2&libraries=services"></script>
+<script th:inline="javascript">
+    $(document).ready( function () {
+
+        $("#button").on("click", function () {
+
+            var facType = $("#facType").val();
+            console.log("facType : "+facType);
+
+            var json = {"facType" : facType};
+            console.log(json);
+
+
+            $.ajax({
+                url : "/page/getCenter",
+                type : "GET",
+                data : json,
+                dataType : "JSON",
+                contentType : 'application/json',
+                success : function (rDTO) {
+                    for (let i = 0; i <rDTO.length; i++) {
+                        // 주소로 좌표를 검색합니다
+                        geocoder.addressSearch(rDTO[i].centerAddr1, function(result, status) {
+                            console.log("센터 주소 : " + rDTO[i].centerAddr1)
+
+                            let name = rDTO[i].centerName
+                            // 정상적으로 검색이 완료됐으면
+                            if (status === kakao.maps.services.Status.OK) {
+
+                                let latLng = new kakao.maps.LatLng(result[0].y, result[0].x);
+                                console.log("위경도 : " + latLng)
+
+                                // 결과값으로 받은 위치를 마커로 표시합니다
+                                let marker = new kakao.maps.Marker({
+                                    map: map,
+                                    position: latLng
+                                });
+
+                                // 인포윈도우로 장소에 대한 설명을 표시합니다
+                                var infowindow = new kakao.maps.InfoWindow({
+                                    content: '<div style="width:100px;text-align:center;padding:6px 0;">' +name+ '</div>'
+                                });
+                                infowindow.open(map, marker);
+                            }
+                        });
+                    }
+                },
+                error : function () {
+                    console.log("API 불러오기 실패")
+                }
+            })
+        })
+    })
+
+
+    var mapContainer = document.getElementById('map'), // 지도를 표시할 div
+        mapOption = {
+            center: new kakao.maps.LatLng(33.450701, 126.570667), // 지도의 중심좌표
+            level: 3 // 지도의 확대 레벨
+        };
+
+    // 지도를 생성합니다
+    var map = new kakao.maps.Map(mapContainer, mapOption);
+
+    // 주소-좌표 변환 객체를 생성합니다
+    var geocoder = new kakao.maps.services.Geocoder();
+
+
+    // 지도 확대 축소를 제어할 수 있는  줌 컨트롤을 생성합니다
+    var zoomControl = new kakao.maps.ZoomControl();
+    map.addControl(zoomControl, kakao.maps.ControlPosition.RIGHT);
+
+
+
+
+
+    // GeoLocation을 이용해서 접속 위치를 얻어옵니다
+    // HTML5의 geolocation으로 사용할 수 있는지 확인합니다
+
+    if (navigator.geolocation) {
+
+        navigator.geolocation.getCurrentPosition(function(position) {
+
+            var lat = position.coords.latitude, // 위도
+                lon = position.coords.longitude; // 경도
+
+            var locPosition = new kakao.maps.LatLng(lat, lon), // 마커가 표시될 위치를 geolocation으로 얻어온 좌표로 생성합니다
+                message = '<div style="padding:5px;">현위치</div>'; // 인포윈도우에 표시될 내용입니다
+
+
+
+
+            // 마커와 인포윈도우를 표시합니다
+            displayMarker(locPosition, message);
+
+        });
+
+    } else { // HTML5의 GeoLocation을 사용할 수 없을때 마커 표시 위치와 인포윈도우 내용을 설정합니다
+
+        var locPosition = new kakao.maps.LatLng(33.450701, 126.570667),
+            message = 'geolocation을 사용할수 없어요..'
+
+        displayMarker(locPosition, message);
+    }
+
+    // 지도에 마커와 인포윈도우를 표시하는 함수입니다
+    function displayMarker(locPosition, message) {
+
+        // 마커를 생성합니다
+        var marker = new kakao.maps.Marker({
+            map: map,
+            position: locPosition
+        });
+
+        // 지도에 표시할 원을 생성합니다
+        var circle = new kakao.maps.Circle({
+            center : locPosition,  // 원의 중심좌표 입니다
+            radius: 10000, // 미터 단위의 원의 반지름입니다
+            strokeWeight: 5, // 선의 두께입니다
+            strokeColor: '#75B8FA', // 선의 색깔입니다
+            strokeOpacity: 1, // 선의 불투명도 입니다 1에서 0 사이의 값이며 0에 가까울수록 투명합니다
+            strokeStyle: 'dashed', // 선의 스타일 입니다
+            fillColor: '#CFE7FF', // 채우기 색깔입니다
+            fillOpacity: 0.7  // 채우기 불투명도 입니다
+        });
+
+        // 지도에 원을 표시합니다
+        circle.setMap(map);
+
+        var iwContent = message, // 인포윈도우에 표시할 내용
+            iwRemoveable = true;
+
+        // 인포윈도우를 생성합니다
+        var infowindow = new kakao.maps.InfoWindow({
+            content : iwContent,
+            removable : iwRemoveable
+        });
+
+        // 인포윈도우를 마커위에 표시합니다
+        infowindow.open(map, marker);
+
+        // 지도 중심좌표를 접속위치로 변경합니다
+        map.setCenter(locPosition);
+    }
+
+    // 지도 위에 표시되고 있는 마커를 모두 제거합니다
+    function removeMarker() {
+        for (let i = 0; i < markers.length; i++ ) {
+            markers[i].setMap(null);
+        }
+        markers = [];
+    }
+
+</script>
+</body>
+</html>

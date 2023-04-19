@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>공지 리스트</title>
+    <link rel="stylesheet" href="/css/table.css"/>
+    <script src="/js/jquery-3.6.0.js"></script>
+
+    <script type="text/javascript">
+        $(document).ready( function () {
+
+            const centerInfo = document.getElementById("#centerInfo");
+
+            $("#button").on("click", function () {
+
+
+                $.ajax({
+                    url : "/page/getCenter",
+                    type : "post",
+                    data : $("#f").serialize(),
+                    dataType : "JSON",
+                    contentType : "application/json; charset=utf-8",
+                    success : function (rDTO) {
+
+
+
+                        for (let i = 0; i <rDTO.length; i++) {
+                            console.log(rDTO[i].centerName);
+                            $("#centerData").append("<div class=\"divTableRow\" id=\"centerInfo\">");
+                            $("#centerData").append("<div class=\"divTableCell\" id=\"centerInfo\">" + rDTO[i].centerCall + "</div>");
+                            $("#centerData").append("<div class=\"divTableCell\" id=\"centerInfo\">" + rDTO[i].centerAddr1 + "</div>");
+                            $("#centerData").append("<div class=\"divTableCell\"  id=\"centerInfo\">" +rDTO[i].centerName + "</div>");
+                            $("#centerData").append("<div class=\"divTableCell\" id=\"centerInfo\">" + rDTO[i].centerType + "</div>");
+                            $("#centerData").append("</div>");
+
+                        }
+                    },
+                    error : function () {
+                        console.log("API 불러오기 실패")
+                    }
+                })
+            })
+        })
+
+
+    </script>
+</head>
+<body>
+<h2>공지사항</h2>
+<hr/>
+<br/>
+<form name="f" id="f">
+    센터 검색 : <select id="facType" name="facType">
+    <option value="msa002a">여성새로일하기센터</option>
+    <option value="msa004a">청소년상담복지센터</option>
+    <option value="msa004b">청소년활동진흥센터</option>
+    <option value="msa004c">청소년수련시설</option>
+    <option value="msa004d">청소년쉼터</option>
+    <option value="msa004e">학교밖청소년지원센터</option>
+    <option value="msa004f">기타 청소년시설</option>
+    <option value="msa003a">가족지원센터</option>
+    <option value="msa003b">공동육아나눔터</option>
+    <option value="msa003c">아이돌봄서비스기관</option>
+    <option value="msa003d">한부모가족복지시설</option>
+    <option value="msa003e">기타가족시설</option>
+    <option value="msa005b">여성긴급전화1366</option>
+    <option value="msa005c">해바라기센터</option>
+    <option value="msa005d">성폭력피해상담</option>
+    <option value="msa005e">가정폭력피해상담</option>
+    <option value="msa005f">성매매피해상담</option>
+    <option value="msa005g">청소년성문화센터</option>
+</select>
+    <button id="button" type="button">검색하기</button>
+</form>
+
+<div class="divTable minimalistBlack">
+    <div class="divTableHeading">
+        <div class="divTableRow">
+            <div class="divTableHead">전화번호</div>
+            <div class="divTableHead">주소</div>
+            <div class="divTableHead">시설명</div>
+            <div class="divTableHead">시설분류</div>
+        </div>
+    </div>
+            <div class="divTableBody" id="centerData"></div>
+</div>
+</body>
+</html>

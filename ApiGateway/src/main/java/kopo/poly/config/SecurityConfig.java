@@ -1,6 +1,6 @@
 package kopo.poly.config;
 
-import com.sun.xml.internal.bind.v2.TODO;
+
 import kopo.poly.filter.JwtAuthenticationFilter;
 import kopo.poly.handler.AccessDeniedHandler;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +36,7 @@ public class SecurityConfig {
 
         // 인증정보가 없다면(로그인하지 않지 않음) 로그인 화면 이동
         // TODO : 인증정보 없을 시 처리 화면 경로 설정
-        http.formLogin().loginPage("//");
+        http.formLogin().loginPage("");
 
         // 인증정보는 있지만, 권한이 없는 경우, 에러 처리
         http.exceptionHandling().accessDeniedHandler(accessDeniedHandler);
@@ -47,8 +47,8 @@ public class SecurityConfig {
         http.authorizeExchange(authz -> authz // 페이지 접속 권한 설정
                         // USER 권한
                         //TODO : 서비스별 권한 설정
-                        .pathMatchers("/user/**").permitAll()
-                        .pathMatchers("/jwt/**").permitAll()
+                        .pathMatchers("/page/**").permitAll()
+                        .pathMatchers("/center/**").permitAll()
 
 //                        .anyExchange().authenticated() // 그외 나머지 url 요청은 인증된 사용자만 가능
                         .anyExchange().permitAll() // 그 외 나머지 url 요청은 인증 받지 않아도 접속 가능함

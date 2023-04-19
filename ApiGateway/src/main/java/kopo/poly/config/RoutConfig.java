@@ -68,7 +68,7 @@ public class RoutConfig {
     @Bean
     public RouteLocator gatewayRoutes(RouteLocatorBuilder builder) {
         return builder.routes()
-                .route(r -> r.path("/user/**") // 일반회원
+                .route(r -> r.path("/center/**") // 복지센터
                         // 라우터 등록
                         // TODO : 서비스별 라우팅 설정
                         .filters(
@@ -77,9 +77,9 @@ public class RoutConfig {
                                         .addResponseHeader("user-response", "From API Gateway!!")
 
                         )
-                        .uri("http://localhost:12000") // 연결될 서버 주소
+                        .uri("http://localhost:13000") // 연결될 서버 주소
 
-                ).route(r -> r.path("/jwt/**") // 일반회원
+                ).route(r -> r.path("/page/**") // 복지센터
                         // 라우터 등록
                         .filters(
                                 // URL별 독립적으로 저장 항목을 추가할 경우 정의함
@@ -87,7 +87,7 @@ public class RoutConfig {
                                         .addResponseHeader("user-response", "From API Gateway!!")
 
                         )
-                        .uri("http://localhost:12000") // 연결될 서버 주소
+                        .uri("http://localhost:15000") // 연결될 서버 주소
                 )
                 .build();
     }
