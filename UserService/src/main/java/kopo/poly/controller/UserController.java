@@ -1,33 +1,20 @@
 package kopo.poly.controller;
 
-import kopo.poly.auth.JwtTokenProvider;
 import kopo.poly.dto.MailDTO;
 import kopo.poly.dto.UserDTO;
-import kopo.poly.service.IUserInfoService;
+import kopo.poly.service.IMailService;
 import kopo.poly.service.IUserService;
-import kopo.poly.util.CmmUtil;
-import kopo.poly.util.DateUtil;
-import kopo.poly.util.EncryptUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
-
-import static kopo.poly.auth.JwtTokenType.ACCESS_TOKEN;
 
 
 @Slf4j
@@ -41,6 +28,8 @@ public class UserController {
     private String accessTokenName;
 
     private final IUserService userService;
+
+    private final IMailService mailService;
 
     /**
      * 회원가입
@@ -72,18 +61,6 @@ public class UserController {
         return ResponseEntity.ok().body(res);
     }
 
-    /**
-     * 닉네임 중복조회
-     */
-    @PostMapping(value = "checkUserNickName")
-    public ResponseEntity<Integer> checkUserNickName(@RequestBody String userNickName) throws Exception {
-        log.info(this.getClass().getName() + "checkUserNickName(user_Service 닉네임 중복체크 시작) START");
-
-
-        int res = userService.checkUserNickName(userNickName);
-
-        return ResponseEntity.ok().body(res);
-    }
 
 
     /**
@@ -103,7 +80,7 @@ public class UserController {
      * 이메일 인증 번호 발송
      */
     @PostMapping(value = "doSendmail")
-    public ResponseEntity<Map> doSendmail(@RequestBody String userEmail , MailDTO mailDTO )  {
+    public ResponseEntity<Map> doSendmail(@RequestBody String userEmail , MailDTO mDTO ) throws Exception {
         log.info(this.getClass().getName() + "doSendmail(user_Service 이메일 인증 번호 발송 시작) START");
 
         int res = 0;
@@ -117,12 +94,12 @@ public class UserController {
         log.info("randomPIN: " + randomPin);
 
 
-        mailDTO.setTomail(userEmail);
-        mailDTO.setTitle(title);
-        mailDTO.setContents(contents);
-        mailDTO.setRandompin(randomPin);
+        mDTO.setTomail(userEmail);
+        mDTO.setTitle(title);
+        mDTO.setContents(contents);
+        mDTO.setRandompin(randomPin);
 
-        res = mailService.doSendmail(mailDTO);
+        res = mailService.doSendmail(mDTO);
 
         if (res == 1) {
             log.info(this.getClass().getName() + "메일 발송 성공!");
@@ -145,10 +122,10 @@ public class UserController {
      * */
 
     @PostMapping(value = "findUserId")
-    public ResponseEntity<String>findUserId(@RequestBody UserInfoDTO userInfoDTO)throws Exception{
+    public ResponseEntity<String>findUserId(@RequestBody UserDTO pDTO)throws Exception{
         log.info(this.getClass().getName() + "findUserId(user_Service 회원 아이디 찾기 시작) START");
 
-        String userId= userInfoService.findUserId(userInfoDTO);
+        String userId= userService.findUserId(pDTO);
 
         log.info(this.getClass().getName() + "findUserId(user_Service 회원 아이디 찾기 끝) end");
         return ResponseEntity.ok().body(userId);

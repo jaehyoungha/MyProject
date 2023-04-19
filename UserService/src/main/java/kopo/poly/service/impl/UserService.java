@@ -1,25 +1,19 @@
 package kopo.poly.service.impl;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import kopo.poly.auth.AuthInfo;
-import kopo.poly.dto.MailDTO;
+
 import kopo.poly.dto.UserDTO;
 import kopo.poly.repository.UserRepository;
 import kopo.poly.repository.entity.UserEntity;
-import kopo.poly.service.IUserInfoService;
 import kopo.poly.service.IUserService;
-import kopo.poly.util.CmmUtil;
 import kopo.poly.util.DateUtil;
 import kopo.poly.util.EncryptUtil;
-import kopo.poly.util.RandomStringUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
 
 import java.util.Optional;
 
@@ -29,9 +23,9 @@ import java.util.Optional;
 public class UserService implements IUserService {
 
     private final UserRepository userRepository;
-    private final MailService mailService;
 
-    private final PasswordEncoder passwordEncoder;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+
 
     /**
      * 회원가입
@@ -45,7 +39,7 @@ public class UserService implements IUserService {
         //회원가입을 위한 Entity 생성
         UserEntity pEntity =UserEntity.builder()
                 .userId(pDTO.getUserId())
-                .userPwd(pDTO.getUserPwd()).userName(pDTO.getUserName())
+                .userPwd(bCryptPasswordEncoder.encode(pDTO.getUserPwd())).userName(pDTO.getUserName())
                 .userEmail(EncryptUtil.encAES128CBC(pDTO.getUserEmail())).addr1(pDTO.getAddr1()).addr2(pDTO.getAddr2())
                 //TODO 이메일 비밀번호 암호화 작업 예정(Spring Security)
                 .regId(pDTO.getUserId()).regDt(DateUtil.getDateTime("yyyy-MM-dd hh:mm:ss"))
@@ -90,25 +84,6 @@ public class UserService implements IUserService {
 
 
     /**
-     * 닉네임 중복 조회
-     * */
-    @Override
-    public int checkUserNickName(String userNickName) throws Exception {
-        log.info(this.getClass().getName()+"checkUserNickName(user_Service 닉네임 중복 체크) start");
-        int res=0;
-
-        Optional<UserEntity>rEntity = userRepository.findByUserNickName(userNickName);
-
-        if(rEntity.isPresent()){
-            res=1;
-        }
-
-        log.info(this.getClass().getName()+"checkUserNickName (user_Service 닉네임 중복체크) 종료 end");
-
-        return res;
-    }
-
-    /**
      * 이메일 중복 조회
      * */
 
@@ -133,7 +108,7 @@ public class UserService implements IUserService {
 
     @Override
     public String findUserId(UserDTO pDTO) throws Exception {
-        log.info(this.getClass().getName()+"findUserId(user_Service 아이디 찾기) start");
+        log.info(this.getClass().getName()+"findUserId start !!");
 
         UserEntity userInfoEntity =userRepository.findByUserNameAndUserEmail(pDTO.getUserName(), pDTO.getUserEmail());
 
@@ -144,7 +119,7 @@ public class UserService implements IUserService {
         }
 
         log.info("회원 아이디는 잘 들어왔니? : "+ userId);
-        log.info(this.getClass().getName()+"findUserId(user_Service 아이디 찾기)종료 end");
+        log.info(this.getClass().getName()+"findUserId end!!");
 
 
         return userId;
@@ -152,7 +127,26 @@ public class UserService implements IUserService {
 
     @Override
     public UserDetails loadUserByUsername(String userID) throws UsernameNotFoundException {
-        return null;
+        log.info(getClass().getName() + ".loadUserByUserName Start!!");
+
+        Optional<UserEntity> result = userRepository.findByUserId(userID);
+        log.info("userID : " + userID);
+
+        if(result.isPresent()==false){
+            throw new UsernameNotFoundException("Check your ID");
+        }
+
+        UserEntity rEntity = result.get();
+        log.info("rEntity : " + rEntity);
+
+        UserDTO rDTO = new UserDTO();
+        rDTO.setUserId(rEntity.getUserId());
+        rDTO.setUserPwd(rEntity.getUserPwd());
+        rDTO.setRoles(rEntity.getRoles());
+
+        log.info(getClass().getName() + ".loadUserByUserName End!!");
+
+        return (UserDetails) rDTO;
     }
 
     /**

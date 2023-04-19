@@ -11,9 +11,6 @@ public interface IUserService extends UserDetailsService {
     //아이디 중복조회
     int checkUserId(String userId)throws Exception;
 
-    //닉네임 중복조회
-    int checkUserNickName(String userNickName)throws Exception;
-
     //이메일 중복조회
     int checkUserEmail(String userEmail)throws Exception;
 

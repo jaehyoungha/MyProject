@@ -1,7 +1,8 @@
 package kopo.poly.controller;
 
-import kopo.poly.dto.UserInfoDTO;
-import kopo.poly.service.IUserInfoService;
+import kopo.poly.dto.UserDTO;
+
+import kopo.poly.service.P_IUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -22,7 +23,7 @@ public class P_UserController {
     private String url="";
     private String sweetalert="/sweetalert";
 
-    private final P_IUserService userInfoService;
+    private final P_IUserService userService;
 
     /**
      * 회원가입
@@ -31,33 +32,33 @@ public class P_UserController {
     @GetMapping("insertUserInfo")
     public String insertUserInfo(){
         log.info(this.getClass().getName()+"insertUserInfo(page_Service 회원가입 페이지)시작 ");
-        return "/user/EGO_LOGIN_002";
+        return "/User/signUp";
     }
 
     /**
      * 회원가입 로직
      * */
     @PostMapping("insertUserInfoProc")
-    public String insertUserInfoProc(UserInfoDTO userInfoDTO, Model model)throws Exception{
+    public String insertUserInfoProc(UserDTO pDTO, Model model)throws Exception{
         log.info(this.getClass().getName()+"insertUserInfoProc(page_Service 회원가입 로직) 시작");
 
         //권한 부여
-        userInfoDTO.setRoles("ROLE_USER");
+        pDTO.setRoles("ROLE_USER");
 
-        int res= userInfoService.insertUserInfo(userInfoDTO);
+        int res= userService.insertUserInfo(pDTO);
 
         log.info("insertUserInfo (회원가입 로직) 확인 :" +res);
 
         if (res == 1) {
             title="회원가입";
             state="success";
-            msg="회원가입 성공! 로그인 해주세요 ";
-            url="/user/userLogin";   //controller 주소ㅓ 작성
+            msg="회원가입 성공!";
+            url="/user/userLogin";
 
         }else{
             title="회원가입 실패";
             state="false";
-            msg="회원가입 실패! 다시 회원가입 해주세요 ";
+            msg="회원가입 실패!";
             url="/user/insertUserInfoProc";
         }
         model.addAttribute("title",title);
@@ -126,12 +127,12 @@ public class P_UserController {
     }
 
     @PostMapping("findUserIdProc")
-    public String findUserIdProc(UserInfoDTO userInfoDTO, Model model) throws Exception {
+    public String findUserIdProc(UserDTO pDTO, Model model) throws Exception {
         log.info(this.getClass().getName()+"findUserIdProc(page_Service 아이디 찾기 로직)시작 ");
 
-        String userId=userInfoService.findUserId(userInfoDTO);
+        String userId=userService.findUserId(pDTO);
 
-        if(userInfoDTO!=null){
+        if(pDTO!=null){
             title = "아이디 찾기";
             state = "success";
             msg = "아이디는 : " + userId + " 입니다!";
